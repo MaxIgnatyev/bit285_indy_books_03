@@ -20,12 +20,41 @@ namespace IndyBooks.Controllers
         [HttpGet]
         public IActionResult CreateBook()
         {
-            return View("AddBook");
+            var addbook = new AddBookViewModel()
+            {
+                WritersList = _db.Writers.ToList()
+            };
+            return View("AddBook", addbook);
         }
         [HttpPost]
         public IActionResult CreateBook(AddBookViewModel newBook)
         {
             //TODO: Build the Author and the Book given the newBook data. Add to DbSets; SaveChanges
+            Writer writer;
+            Book book;
+            if (newBook.AuthorId != 0)
+            {
+                writer = _db.Writers.Single(w => w.Id == newBook.AuthorId);
+            }
+            else
+            {
+                writer = new Writer()
+                {
+                    Name = newBook.Name
+                };
+
+            }
+            book = new Book()
+            {
+                Title = newBook.Title,
+                SKU = newBook.SKU,
+                Price = newBook.Price,
+                Author = writer
+            };
+
+            //_db.Writers.Add(writer);
+            _db.Books.Add(book);
+            _db.SaveChanges();
 
 
             //Shows the new book using the Search Listing 
@@ -38,14 +67,30 @@ namespace IndyBooks.Controllers
         public IActionResult Index()
         {
             //TODO: Use lambda methods as described by the variable name
-            var allBooksWithAuthorsOrderedbySKU = _db.Books;
+            var allBooksWithAuthorsOrderedbySKU = _db.Books.Include(b => b.Author).OrderBy(b => b.SKU);
             return View("SearchResults", allBooksWithAuthorsOrderedbySKU);
         }
         /***
          * UPDATE
          */
          //TODO: BONUS - Write an method that take a book id, and loads the book data in to the AddBook View
+         [HttpGet]
+         public IActionResult UpdateBook(long id)
+        {
+            Book book = _db.Books.Include(b => b.Author).Single(b => b.Id == id);
+            AddBookViewModel bookToUpdate = new AddBookViewModel()
+            {
+                Id = id,
+                Title = book.Title,
+                SKU = book.SKU,
+                Price = book.Price,
+                Name = book.Author.Name,
+                AuthorId = book.Author.Id,
+                WritersList = _db.Writers.ToList()
+            };
 
+            return View("AddBook", bookToUpdate);
+        }
         /***
          * DELETE
          */
@@ -53,7 +98,9 @@ namespace IndyBooks.Controllers
         public IActionResult DeleteBook(long id)
         {
             //TODO: Remove the Book associated with the given id number; Save Changes
-
+            Book bookToDelete = _db.Books.Single(b => b.Id == id);
+            _db.Books.Remove(bookToDelete);
+            _db.SaveChanges();
 
             return RedirectToAction("Search");
         }

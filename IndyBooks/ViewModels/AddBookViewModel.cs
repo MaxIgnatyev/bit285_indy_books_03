@@ -7,6 +7,7 @@ namespace IndyBooks.ViewModels
 {
     public class AddBookViewModel
     {
+        public long Id { get; set; }
         public string Title { get; set; }
         public string SKU { get; set; }
         [DataType(DataType.Currency)]
@@ -17,5 +18,6 @@ namespace IndyBooks.ViewModels
         //Add properties to support a Writer's SelectList (Id and WritersList)
         public long AuthorId { get; set; }
         public List<Writer> WritersList { get; set; }
+        //public List<Book> Books { get; set; }
     }
 }
